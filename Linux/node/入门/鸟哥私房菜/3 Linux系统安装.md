@@ -26,7 +26,8 @@
 > 重启网络服务命令：service network restart  
   
 #### 两个IP配置相关的文件  
-* /etc/resolv.conf：主要内容：nameserver：DNS服务器的IP地址；domain：本地域名  
+* /etc/resolv.conf：主要内容：nameserver：DNS服务器的IP地址；domain：本地域名;[更多](http://blog.csdn.net/mybelief321/article/details/10049429)  
 * /etc/sysconfig/network-scripts/ifcfg-ens33（ens33是我们自定义的名字）：这里是关于ip相关的主要设置  
 #### 问题  
-1、必须要设置网关和DNS服务器IP，还必须要设置成一样的，看我的虚拟机上的地址是192.168.77.1：![](./images/vmip.jpg)但是我的geteway和dns IP要设置成192.168.77.2，然后才能上网，这是为啥？
+1、必须要设置网关和DNS服务器IP，还必须要设置成一样的，看我的虚拟机上的地址是192.168.77.1：![](./images/vmip.jpg)  
+但是我的geteway和dns IP要设置成192.168.77.2，然后才能上网，这是为啥？
