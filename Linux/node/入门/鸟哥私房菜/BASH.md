@@ -25,7 +25,7 @@
 > Linux上预设的是bash  
 > 当前登录的用户可使用的shell可在/etc/passwd中查看，最后一个资料便是其可使用的shell  
   
-![](../images/shell.png)  
+![](./images/shell.png)  
 *上图说明，root用户以及zhwilson用户使用的shell是/bin/bash,而一些用户则使用的是/usr/sbin/nologin*  
 ## Bash shell的功能  
 * 命令修复能力(history)：在当前用户家目录的.bash_history中记录使用过的命令，因此我们可以使用上下键找到前/后输入的命令（.bash_history中存储的是上次登入系统执行的命令，当前登录执行的命令存储在内存中，当我们登出系统时，内存才将当前登录执行的命令存储到该文件中）  
@@ -93,4 +93,4 @@ bash执行命令时就是通过指令调用其它的应用程序，也就是一�
 * 这里的替换也是不是真正的将变数的内容进行替换，也是一般做显示和赋值的时候使用  
 * 从开始向右将第一个出现的与字符串匹配的内容替换成要替换的内容，如：${variable/要替换的内容/替换的内容}  
 * 将变数内容中所有与字符串匹配的内容替换成要替换的内容，如：${variable//要替换的内容/替换的内容}  
-![](../images/variable_replace.png)  
+![](./images/variable_replace.png)  
