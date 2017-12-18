@@ -18,7 +18,6 @@
 > Android中不直接使用Shader，而是使用其的几个子类  
   
 ###### LinearGradient:线性渐变  
-构造方法：  
 *两种颜色：*  
 > LinearGradient(float x0, float y0, float x1, float y1, int color0, int color1, TileMode tile)  
   
@@ -37,28 +36,28 @@
 *TileMode:着色规则*  
 * Shader.TileMode.CLAMP:颜色从端点向周围发散  
 ```  
-LinearGradient linearGradient = new LinearGradient(-200, 0, 200, 0, Color.RED, Color.BLUE, Shader.TileMode.CLAMP);
+	LinearGradient linearGradient = new LinearGradient(-200, 0, 200, 0, Color.RED, Color.BLUE, Shader.TileMode.CLAMP);
         paint.setShader(linearGradient);
         canvas.drawRect(-width/2, -height/2, width/2, height/2, paint);  
 ```  
 ![](./images/tilemode_clamp.png)  
 * Shader.TileMode.MIRROR:颜色从两端点向中间发散，然后沿着两端点连线方向镜像颜色  
 ```  
-LinearGradient linearGradient = new LinearGradient(-200, 0, 200, 0, Color.RED, Color.BLUE, Shader.TileMode.MIRROR);
+	LinearGradient linearGradient = new LinearGradient(-200, 0, 200, 0, Color.RED, Color.BLUE, Shader.TileMode.MIRROR);
         paint.setShader(linearGradient);
         canvas.drawRect(-width/2, -height/2, width/2, height/2, paint);  
 ```  
 ![](./images/tilemode_mirror.png)  
 * Shader.TileMode.REPEAT:颜色从两端点向中间发散，然后沿着两端点连线方向重复颜色  
 ```  
-LinearGradient linearGradient = new LinearGradient(-200, 0, 200, 0, Color.RED, Color.BLUE, Shader.TileMode.REPEAT);
+	LinearGradient linearGradient = new LinearGradient(-200, 0, 200, 0, Color.RED, Color.BLUE, Shader.TileMode.REPEAT);
         paint.setShader(linearGradient);
         canvas.drawRect(-width/2, -height/2, width/2, height/2, paint);  
 ```  
 ![](./images/tilemode_repeat.png)  
 *多颜色实例*  
 ```  
-canvas.drawColor(Color.BLACK);
+	canvas.drawColor(Color.BLACK);
         canvas.translate(width*1.0f/2, height*1.0f/2);
         String text = "鲁迅加油";
         paint.setTextSize(150);
