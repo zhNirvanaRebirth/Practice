@@ -129,7 +129,7 @@ bash执行命令时就是通过指令调用其它的应用程序，也就是一�
 * non-login shell：不需要重复登录就能取得bash（如图形界面的terminal和使用bash命令进去子程序）  
 ### login shell读取的文档  
 * /etc/profile:系统的设定文档  
-* ~/.bash_profile或~/.bash_login或~/.profile:个人设定档案  
+* \~/.bash_profile或~/.bash_login或~/.profile:个人设定档案  
 ### /etc/profile文档  
 * 保存系统的设定
 * 使用者登录时一定会将这个文档的内容读入bash，因此所有使用者都能使用这里的设定  
