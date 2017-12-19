@@ -76,6 +76,7 @@
 > ComposeShader(Shader shaderA, Shader shaderB, Xfermode mode)  
 > ComposeShader(Shader shaderA, Shader shaderB, PorterDuff.Mode mode)  
   
+---  
 *TileMode:着色规则*  
 > 是定义的范围外的颜色着色规则  
 * Shader.TileMode.CLAMP:颜色从端点向周围发散  
