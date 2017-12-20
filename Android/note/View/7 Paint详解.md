@@ -114,3 +114,7 @@
         canvas.drawText(text, -offset, 0, paint);  
 ```  
 ![](./images/lineargradient_multi_color.png)  
+---  
+*PorterDuff.Mode:颜色策略*  
+> 用来指定两个**图像**共同绘制时的颜色策略：源图形绘制到目标图形处时应该怎么确定二者结合后的颜色  
+  
