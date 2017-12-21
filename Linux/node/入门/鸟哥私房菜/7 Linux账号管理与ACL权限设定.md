@@ -52,8 +52,17 @@
 ### 群组  
 * 有效群组：用户当前创建一个文件，这个文件所属的群组即为当前用户的有效群组（用户可以支援多个群组，通过"groups"可查看用户支持的群组，使用命令"newgrp"可以进行有效群组的切换）  
 * 初始群组：在/etc/passwd文档中每一行用户设定的第四项设定的GID所属的群组，即为用户的初始群组
-### 相关操作与指令  
+#### 相关操作与指令  
 * 可通过"id 账号名"来查看相关的用户的uid、gid与groups等  
+* 使用"groupadd [-g gid] [-r] 群組名稱"新增群组  
+* 使用"groupmod [-g gid] [-n group_name] 群組名"修改群组相关信息  
+* 使用"groupdel [groupname]"删除群组，能删除成功的前提是没有账号使用该群组  
+#### gpasswd群组管理员功能  
+* "gpasswd groupname"；给群组设置密码  
+* "gpasswd [-A user1,...] [-M user3,...] groupname"：设置该群组的管理员和成员（-A：设置管理员，-M：添加账号）  
+* "gpasswd [-rR] groupname"：移除或设置密码失效  
+* "gpasswd [-ad] user groupname"：向群组中添加或删除账号  
+
 ## 账号管理  
 * useradd：新增使用者  
 * passwd：密码设定  
@@ -99,6 +108,42 @@
   
 * 查看密码的相关信息：使用"passwd -S"或"chage -l 帳號名"  
 * chage [-dEImMW] 帳號名：修改密码的相关信息  
+#### usermod相关操作  
+> 使用"usermod [-cdegGlsuLU] username"命令进行账户相关信息的修改  
+  
 
 #### userdel相关操作  
-* userdel：删除账号，当账号的初始群组没有其他用户属于该群组时，该群组也会被删除  
+> userdel：删除使用者资料，当账号的初始群组没有其他用户属于该群组时，该群组也会被删除  
+> 命令："userdel [-r] username"，能删除的资料如下：  
+  
+* 使用者账号与密码：/etc/passwd,/etc/shadow  
+* 使用者群组：/etc/group,/etc/gshadow  
+* 使用者个人资料：/home/username,/var/spool/mail/username  
+### 使用者功能  
+> useradd,usermod,userdel等命令都是root用户才能使用，一般使用者能使用的功能如下：  
+  
+* "id [username]"：查看username的UID，GID和groups  
+* "finger [-s] username"：查看使用者的信息  
+* "chfn [-foph] [帳號名]"：修改使用者的信息  
+* "chsh [-ls]"：查看系统上能使用的shell或修改使用者的shell  
+## ACL  
+> ACL:Access Control List,是提供user,group,other管理权限之外的细部权限设定，ACL可针对单一用户，单一档案或目录进行权限设定  
+  
+ACL可以针对的权限设定：  
+* 可以针对使用者来设定权限  
+* 可以针对群组来设定权限  
+* 可以针对在某个目录下新建文档/目录时设置权限  
+### ACL设定技巧  
+* getfacl:获取某个档案/目录的ACL设定  
+* setfacl:设置某个档案/目录的ACL设定，如："setfacl -m u:vbird1:rx acl_test1"  
+## 使用者身份切换  
+* "su"：使用non-login shell方式变成root用户，这种方式切换，很多变量不会改变，比如原来的邮箱(/var/spool/mail/username)等  
+* "su -"：使用login shell方式变成root用户  
+* "su - -c 指令"：使用一次root用户身份执行指令，完成之后返回当前用户  
+* "sudo"：在切换使用者时只需要输入自己的密码，且只有在/etc/sudoers中的用户才能使用该命令  
+* 使用visudo来修改/etc/sudoers中的内容  
+## 使用者的特殊shell和PAM  
+> 如果我们想让某个账号只能访问系统的mail资源，当我们不给某个账号设置密码，该账号是无法登陆Linux主机的，自然就不能使用mail资源，但是我们给该账号设置了密码，该账号能登录主机，就能访问一般使用者能访问的资源  
+> /sbin/nologin：特殊的shell，如系统账号使用的shell是/sbin/nologin，所以系统账号是不需要登录的，就算给了其密码，它也无法登录，当我们使用该账号（其使用shell为/etc/nologin）时，会提示/etc/nologin.txt中的内容  
+> PAM：Pluggable Authentication Modules, 嵌入式模組，提供了一连串的验证机制，使用者将验证需求告知PAM，PAM输入验证结果  
+
