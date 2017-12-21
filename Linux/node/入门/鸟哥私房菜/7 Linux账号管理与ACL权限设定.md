@@ -145,5 +145,5 @@ ACL可以针对的权限设定：
 ## 使用者的特殊shell和PAM  
 > 如果我们想让某个账号只能访问系统的mail资源，当我们不给某个账号设置密码，该账号是无法登陆Linux主机的，自然就不能使用mail资源，但是我们给该账号设置了密码，该账号能登录主机，就能访问一般使用者能访问的资源  
 > /sbin/nologin：特殊的shell，如系统账号使用的shell是/sbin/nologin，所以系统账号是不需要登录的，就算给了其密码，它也无法登录，当我们使用该账号（其使用shell为/etc/nologin）时，会提示/etc/nologin.txt中的内容  
-> PAM：Pluggable Authentication Modules, 嵌入式模組，提供了一连串的验证机制，使用者将验证需求告知PAM，PAM输入验证结果  
+> PAM：Pluggable Authentication Modules, 嵌入式模組，提供了一连串的验证机制，使用者将验证需求告知PAM，PAM进行验证并告知结果  
 
