@@ -135,3 +135,48 @@
         paint.setXfermode(null);
         canvas.restoreToCount(saveCount);  
 ```  
+### setColorFilter(ColorFilter colorFilter)  
+> 对绘制的内容的每个像素进行过滤后在绘制出来，设置的ColorFilter为其子类  
+  
+#### LightingColorFilter  
+> 构造方法：LightingColorFilter(int mul, int add);  
+  
+参数说明：  
+* mul：和颜色值格式相同的int值（如：0xffffff），用来和目标像素相乘  
+* add：和颜色值格式相同的int值（如：0xffffff），用来和目标像素相加  
+计算原理如下：  
+R' = R * mul.R / 0xff + add.R  
+G' = G * mul.G / 0xff + add.G  
+B' = B * mul.B / 0xff + add.B  
+**具体有什么用呢？可以用来删除目标中的某个/某些颜色或者调整目标中某个/某些颜色的深浅**  
+#### PorterDuffColorFilter  
+> 构造方法：PorterDuffColorFilter(@ColorInt int color, @NonNull PorterDuff.Mode mode);  
+  
+参数说明：  
+* color：用作与目标混合的颜色  
+* mode：颜色混合模式  
+**这里再次使用到了PorterDuff.Mode,只是这里是使用的颜色作为源，所以这里可能会用到的mode会是：DARKEN，LIGHTEN，MULTIPLY等**  
+## 效果  
+> Paint可以使用一些api，使绘制内容表现出不同的效果  
+  
+### Paint设置线条形状  
+* setStrokeWidth(float width)：设置线条宽度（默认线条的宽度是0，但是画出来线条宽度依然是1个像素，这个值的好处是当我们对绘制图像进行变换，比如缩放时，其边框线条宽度不会发生缩放）  
+* setStrokeCap(Paint.Cap cap)：设置线头形状（BUTT 平头，ROUND 圆头，SQUARE 方头，默认是BUTT）  
+* setStrokeJoin(Paint.Join join)：设置连线拐角的形状（MITER 尖角，BEVEL 平角，ROUND 圆角，默认是MITER）  
+* setStrokeMiter(float miter)：对setStrokeJoin方法的一个补充，当join为MITER时，限制拐角延长线的最大值（在两条线的夹角过小的时候，会造成尖角过尖过长的问题）  
+测试代码：  
+```  
+	paint.setStrokeWidth(50);
+        paint.setColor(Color.BLACK);
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setStrokeJoin(Paint.Join.ROUND);
+        Path path= new Path();
+        path.moveTo(-200, -200);
+        path.lineTo(200, -200);
+        path.lineTo(0, 200);
+        path.close();
+        canvas.drawPath(path, paint);  
+```  
+## 色彩优化  
+* setDither(boolean dither)：是否加入抖动，开启抖动可以在在图像降低色彩深度绘制时，避免出现大片的色带与色块（就是一片是这个颜色，挨着的一片又是其他的颜色，颜色跳度过大）  
+* setFilterBitmap(boolean filter)：是否使用双线性过滤来绘制Bitmap，开启双线性过滤，可以避免图形在放大绘制的时候出现马赛克现象  
