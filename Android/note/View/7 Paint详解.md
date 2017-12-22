@@ -180,3 +180,56 @@ B' = B * mul.B / 0xff + add.B
 ## 色彩优化  
 * setDither(boolean dither)：是否加入抖动，开启抖动可以在在图像降低色彩深度绘制时，避免出现大片的色带与色块（就是一片是这个颜色，挨着的一片又是其他的颜色，颜色跳度过大）  
 * setFilterBitmap(boolean filter)：是否使用双线性过滤来绘制Bitmap，开启双线性过滤，可以避免图形在放大绘制的时候出现马赛克现象  
+## setPathEffect(PathEffect effect) 设置图形轮廓效果  
+> 使用PathEffect来给图形的轮廓设置效果（实际上就是设置图形边线的不同效果）  
+  
+### CornerPathEffect 将图形所有拐角变成圆角  
+> 构造方法：CornerPathEffect(float radius);   radius:圆角半径  
+  
+### DiscretePathEffect 将图形轮廓线条进行随机偏离  
+> 构造方法：DiscretePathEffect(float segmentLength, float deviation);  
+  
+参数说明：  
+* segmentLength:轮廓切分的每段的长度  
+* deviation:每段segment的偏移量  
+**这是类是将图形的轮廓按每段segmentLength的长度分段，然后每段的偏移量是deviation，具体怎么偏移，不是很清楚，反正这里就是打乱轮廓的线条就是了**  
+### DashPathEffect 将图形的轮廓线设置成虚线  
+> 构造方法：DashPathEffect(float intervals[], float phase);  
+  
+参数说明：  
+* intervals：线段长度和空白长度的数组，格式是{线段长度，空白长度，线段长度，空白长度，...}，绘制的时候，会按此数组重复设置线段长度和空白长度  
+* phase：开始绘制时的对于数组中的偏移长度（什么意思，比如phase=20，数组是{20, 10, 5},则在绘制是，开始就绘制10长度的空白）  
+### PathDashPathEffect 使用path来充当虚线内容  
+> 构造方法：PathDashPathEffect(Path shape, float advance, float phase, Style style)  
+  
+参数说明：  
+* shape:充当虚线的图形  
+* advance:两个充当虚线图形的起点之间的距离（所以这里如果值小于shape的宽度/高度，会造成没有空白部分）  
+* phase:开始绘制时的偏移长度  
+* style:shape的转换样式（TRANSLATE:位移；ROTATE:旋转；MORPH:变体）  
+### SumPathEfffect 同时绘制两种轮廓  
+> 构造方法：SumPathEffect(PathEffect first, PathEffect second);  
+  
+**它会将两种图形轮廓同时绘制**  
+### ComposePathEffect 进行两种轮廓综合绘制  
+> 构造方法：ComposePathEffect(PathEffect outerpe, PathEffect innerpe);  
+  
+**先对图形轮廓线进行innerpe效果，再进行outerpe效果**  
+## setShadowLayer 设置绘制内容阴影  
+> 构造方法：setShadowLayer(float radius, float dx, float dy, int shadowColor);  
+  
+参数说明：  
+* radius：阴影半径（可以理解成阴影线宽的一半吧）  
+* dx，dy：阴影在x，y方向上的偏移  
+* shadowColor：阴影颜色  
+**在绘制内容的下面加一层阴影**  
+## setMaskFilter(MaskFilter maskFilter) 设置绘制内容上层效果  
+> 对整个画面进行过滤，添加绘制内容上层效果  
+  
+### BlurMaskFilter 模糊效果  
+> 构造方法：BlurMaskFilter(float radius, Blur style);  
+  
+参数说明：  
+* radius:模糊效果相对于绘制内容的扩展半径(就是模糊效果的半径是绘制内容的半径+radius，下面所谓的“外部”)  
+* style:模糊类型（NORMAL:内外部都模糊；SOLID:内部正常绘制，外部模糊；INNER:内部模糊，外部不绘制；OUTER:内部不绘制，外部模糊；“内部”即为内容的原本绘制区域）  
+
