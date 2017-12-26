@@ -56,6 +56,7 @@ Picture的相关方法：
 * Canvas的drawPicture方法  
 * 将Picture封装成PictureDrawable，使用PictureDrawable的draw方法  
 **Canvas在绘制Picture的时候和绘制Bitmap是一样的，从当前坐标原点开始绘制Picture的左上角，Picture的大小在beginRecording的时候指定**  
+  
 Canvas对Picture的绘制  
 * drawPicture(@NonNull Picture picture)：绘制Picture中录制的内容  
 * drawPicture(@NonNull Picture picture, @NonNull Rect dst)/drawPicture(@NonNull Picture picture, @NonNull RectF dst):将Picture绘制在指定区域，若区域和Picture的大小不一致，Picture会进行相应的缩放  
@@ -67,6 +68,7 @@ Bitmap获取方式：
 * 通过Bitmap创建  
 * 通过BitmapDrawable获取  
 * 通过BitmapFactory获取  
+  
 Canvas对Bitmap的绘制  
 * drawBitmap(@NonNull Bitmap bitmap, @NonNull Matrix matrix, @Nullable Paint paint)：对canvas进行几何变换并绘制位图  
 * drawBitmap(@NonNull Bitmap bitmap, @Nullable Rect src, @NonNull RectF dst, @Nullable Paint paint)/drawBitmap(@NonNull Bitmap bitmap, @Nullable Rect src, @NonNull Rect dst, @Nullable Paint paint):将图片中的src区域内容绘制到canvas的dst区域，两区域大小不等时进行缩放  
