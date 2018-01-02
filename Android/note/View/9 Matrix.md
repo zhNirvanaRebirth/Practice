@@ -19,6 +19,6 @@ Matrix的样子：
 |1|    |0		0		1| |1|  
 ```  
 结果：  
-x' = MSCALE_X\*x + 0*y + 0*1 = MSCALE_X*x  
-y' = 0*x + MSCALE_Y*y + 0*1 = MSCALE_Y*y  
+x' = MSCALE_X\*x + 0\*y + 0\*1 = MSCALE_X\*x  
+y' = 0\*x + MSCALE_Y\*y + 0\*1 = MSCALE_Y\*y  
  
