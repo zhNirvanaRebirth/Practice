@@ -67,3 +67,33 @@ nice值设定：
 * netstat：追踪网络或插槽档  
 * dmesg：分析核心产生的信息  
 * vmstat：侦测系统资源（CPU/内存/磁盘等）变化  
+## SELinux  
+> SELinux: Security Enhanceed Linux,就是安全强化的Linux  
+  
+* 自主式存取控制：Discretionary Access Control,DAC，就是依据进程的拥有者和文件资源的rwx权限来决定有无存取能力（缺点时root具有最高权限，可以做任何操作，具有读写操作权限的使用者可能执行一些误操作）  
+* 委任式存取控制：Mandatory Access Control,MAC，可以根据不同的进程与特定的文件资源来进行权限的管控，使我们针对控制的主体从使用者变成了进程  
+### SELinux的运行模式  
+> SElinux是通过MAC方式来管控进程的，它控制的主体是进程，目标是能否读取的文件资源  
+  
+* 主体(Subject):要管理的进程  
+* 目标(Object):控制读取的文件资源（文件系统）  
+* 政策(Policy):targeted：针对网络服务限制较多，针对本机限制较少，是预设的政策；minimum:仅针对选择的进程来保护；mls：完整的SElinux限制，限制方面较为严格  
+* 安全行本文(security context):类似与文件系统中的rwx  
+### 安全行本文(Security Context)  
+> 安全行本文是放置再文件的inode中的  
+  
+内容：（使用"ls -Z"指令查看secuirty context中的内容，中间以分号分割）  
+* 身份识别(Identify):unconfined_u:不受限的用户，就是该文件是由不受限的进程产生；system_u:系统用户，大部分系统服务运行过程中产生的文件  
+* 角色(Role):通过角色，我们可以知道这个文件是属于进程、文件资源还是代表使用者。object_r:代表文件或目录等文件资源；system_r:代表进程  
+* 类型(Type):分为进程的域(domain)和文件资源的类型(type)  
+### SELinux的模式  
+> 通过指令"getenforce"来查看当前SELinux的模式，使用"sestatus"指令查看SELinux的相关信息  
+  
+* enforcing:强制模式，代表SELinux运行中，且已经正确的开始限制domain/type  
+* permissive:宽容模式，代表SELinux运行中，但只会由警告信息并不会实际限制domain/type的存取  
+* disable:关闭  
+### SELinux政策内的规则(rules)管理  
+> SELinux的三种模式会影响进程对文件的存取，除此之外，就是政策内的规则对进程的影响了  
+  
+* 通过指令"sestatus -b"或"getsebool -a"可以查看系统上的规则是否启动  
+* 使用指令"setsebool -P [规则名称] [0|1]"关闭/开启SELinux规则  
