@@ -74,3 +74,7 @@ Canvas对Bitmap的绘制
 * drawBitmap(@NonNull Bitmap bitmap, @Nullable Rect src, @NonNull RectF dst, @Nullable Paint paint)/drawBitmap(@NonNull Bitmap bitmap, @Nullable Rect src, @NonNull Rect dst, @Nullable Paint paint):将图片中的src区域内容绘制到canvas的dst区域，两区域大小不等时进行缩放  
 * drawBitmap(@NonNull Bitmap bitmap, float left, float top, @Nullable Paint paint)：从当前canvas的坐标系中的点(left,top)开始绘制Bitmap  
   
+## 画布裁剪  
+### 范围裁剪  
+* clipRect(int left, int top, int right, int bottom)：截取画布上rect部分的内容（就是只绘制rect区域的内容）  
+* clipPath(@NonNull Path path)：截取画布上path部分的内容（就是只绘制path区域的内容）  
