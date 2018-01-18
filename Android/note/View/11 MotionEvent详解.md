@@ -35,3 +35,37 @@
 * findPointerIndex(int pointerId):通过pointerId查找其对应的pointerIndex（手指编号）  
 * getX(int pointerIndex):获取一个手指的X坐标  
 * getY(int pointerIndex):获取一个手指的Y坐标  
+### MotionEvent_ACTION_POINTER_DOWN/MotionEvent.ACTION_POINTER_UP与手指的ActionIndex的关系  
+> 每个手指在按下时就得到一个ActionIndex，可通过getActionIndex()方法获得，在手指一直按下的状态，其对应的ActionIndex不是一直不变的，具体可以有几种情况  
+  
+* ActionIndex以0开始，第二个按下的手指对应的ActionIndex为1，依次类推  
+* 发生单次MotionEvent.ACTION_POINTER_UP事件时（抬起手指）的情况：抬起的手指的ActionIndex被回收，剩下的未抬起的手指的ActionIndex不发生变化，此时发生MotionEvent_ACTION_POINTER_DOWN事件（按下手指），按下的手指的ActionIndex会等于最小的未使用的数字（比如现在按下了三个手指，其ActionIndex依次为0,2,4，那么现在按下这个手指的ActionIndex=1）  
+* 连续多次发生MotionEvent.ACTION_POINTER_UP事件时（抬起手指）的情况：只有抬起的手指的ActionIndex不是最大的，剩下的未抬起的手指的ActionIndex会发生变化，此时发生MotionEvent_ACTION_POINTER_UP事件（继续抬起手指），在此之前（可以理解为继续抬起手指之前），剩下手指的ActionIndex将发生变化，具体就是ActionIndex必须是从0开始且连续的（比如原来按下了4个手指，ActionIndex=0，1， 2， 3，现在抬起了ActionIndex=2的手指，那么我现在再抬起第四个按下的手指（原来的ActionIndex=3），实际上我们得到现在触发抬起事件的手指的ActionIndex=2，懂了么？）  
+
+### 单点触控与多点触控的事件获取  
+* 多点触控必须使用getActionMasked()来获取事件类型  
+* 单点触控使用getAction()或getActionMasked()来获取事件类型都行  
+* 使用方法getActionIndex()来获取触发相关事件的手指的ActionIndex，但是getActionIndex()方法只对down和up有效，而无论哪个手指的move事件，我们获取到的ActionIndex都是0，因此是无效的  
+### 历史数据  
+> 历史数据只有ACTION_MOVE事件  
+  
+* getHistorySize():获取历史事件集合大小  
+* getHistoricalX(int pos):获取第pos个历史事件X坐标  
+* getHistoricalY(int pos):获取第pos个历史事件Y坐标  
+* getHistoricalX(int actionIndex, int pos):获取第actionIndex手指的第pos个历史事件的X坐标  
+* getHistoricalY(int actionIndex, int pos):获取第actionIndex手指的第pos个历史事件的Y坐标  
+### 获取事件发生的时间  
+* getDownTime():获取手指按下的时间  
+* getEventTime():获取当前事件发生的时间  
+* getHistoricalEventTime(int pos):获取第pos个历史事件发生的时间  
+### 获取接触面积/压力  
+> 获取接触面积大小和压力大小需要硬件支持，有的设备只支持其中一个，有的可能都不支持  
+  
+* getSize():获取第一个手指与屏幕接触面积的大小  
+* getSize(int actionIndex):获取第actionIndex个手指与屏幕接触面积的大小  
+* getHistoricalSize(int pos):获取历史数据中第一个手指在第pos次事件中的接触面积大小  
+* getHistoricalSize(int actionIndex, int pos):获取历史数据中第actionIndex个手指在第pos次事件中的接触面积大小  
+* getPressure():获取第一个手指的压力大小  
+* getPressure(int actionIndex):获取第actionIndex个手指的压力大小  
+* getHistoricalPressure(int pos):获取历史数据中第一个手指在第pos事件中的压力大小  
+* getHistoricalPressure(int actionIndex, int pos):获取历史数据中第actionIndex个手指在第pos事件中的压力大小  
