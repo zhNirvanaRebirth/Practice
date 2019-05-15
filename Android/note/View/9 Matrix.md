@@ -1,133 +1,133 @@
 # Matrix  
-## Matrix���  
-> Matrix��һ��������Ҫ����������ӳ�䣬��ֵת��  
+## Matrix简介  
+> Matrix是一个矩阵，主要用来做坐标映射，数值转换  
   
-Matrix�����ӣ�  
+Matrix的样子：  
 ```  
 |MSCALE_X	MSKEW_X		MTRANS_X|  
 |MSKEW_Y	MSCALE_Y	MTRANS_Y|  
 |MPERSP_0	MPERSP_1	MPERSP_2|  
 ```  
-**(MPERSP_0, MPERSP_1, MPERSP_2)���������ǿ���͸�ӵģ���3DЧ�������ã�ͨ��Ϊ(0, 0, 1)**  
+**(MPERSP_0, MPERSP_1, MPERSP_2)三个参数是控制透视的，在3D效果中运用，通常为(0, 0, 1)**  
 
-### Matrixʵ������任��ԭ��  
-> ����ĵ㶼��ʹ���������ϵ����ʾ�ģ�(x, y, 1)��ʾ�㣻(x, y, 0)��ʾ����  
+### Matrix实现坐标变换的原理  
+> 这里的点都是使用齐次坐标系来表示的，(x, y, 1)表示点；(x, y, 0)表示向量  
   
-1. ����  
-�任����  
+1. 缩放  
+变换矩阵：  
 ```  
 |x'|   |MSCALE_X	0		0| |x|  
 |y'| = |0		MSCALE_Y	0| |y|  
 |1|    |0		0		1| |1|  
 ```  
-�����  
+结果：  
 x' = MSCALE_X\*x + 0\*y + 0\*1 = MSCALE_X\*x  
 y' = 0\*x + MSCALE_Y\*y + 0\*1 = MSCALE_Y\*y  
-2. ����  
-ˮƽ���У��任����  
+2. 错切  
+水平错切，变换矩阵：  
 ```  
 |x'|   |1	MSKEW_X	0| |x|  
 |y'| = |0	1	0| |y|  
 |1|    |0	0	1| |1|  
 ```  
-�����  
+结果：  
 x' = x + MSKEW_X\*y + 0\*1 = x + MSKEW_X\*y  
 y' = 0\*x + 1\*y + 0\*1 = y  
-��ֱ���У��任����  
+垂直错切，变换矩阵：  
 ```  
 |x'|   |1	0	0| |x|  
 |y'| = |MSKEW_Y	1	0| |y|  
 |1|    |0	0	1| |1|  
 ```  
-�����  
+结果：  
 x' = x + 0\*y + 0\*1 = x  
 y' = MSKEW_Y\*x + 1\*y + 0\*1 = MSKEW_Y\*x + y  
-���ϴ��У��任����  
+复合错切，变换矩阵：  
 ```  
 |x'|   |1	MSKEW_X	0| |x|  
 |y'| = |MSKEW_Y	1	0| |y|  
 |1|    |0	0	1| |1|  
 ```  
-�����  
+结果：  
 x' = x + MSKEW_X\*y + 0\*1 = x + MSKEW_X\*y  
 y' = MSKEW_Y\*x + 1\*y + 0\*1 = MSKEW_Y\*x + y  
-3. ��ת  
-��һ��(x, y),���������е�λ�ÿ��Ա�ʾΪ��  
+3. 旋转  
+有一点(x, y),其在坐标中的位置可以表示为：  
 ```  
-x = rcos��  
-y = rsin��  
+x = rcosα  
+y = rsinα  
 ```  
-(x, y)��ԭ����ת�Ȼ��ȣ���ת�õ��ĵ�����꣺  
+(x, y)绕原点旋转θ弧度，旋转得到的点的坐标：  
 ```  
-x' = rcos(�� + ��) = rcos��cos�� - rsin��sin�� = xcos�� - ysin��  
-y' = rsin(�� + ��) = rsin��cos�� + rcos��sin�� = ycos�� + xsin��  
+x' = rcos(α + θ) = rcosαcosθ - rsinαsinθ = xcosθ - ysinθ  
+y' = rsin(α + θ) = rsinαcosθ + rcosαsinθ = ycosθ + xsinθ  
 ```  
-�����ʾ��  
+矩阵表示：  
 ```  
-|x'|   |cos��	-sin��	0| |x|  
-|y'| = |sin��	cos��	0| |y|  
+|x'|   |cosθ	-sinθ	0| |x|  
+|y'| = |sinθ	cosθ	0| |y|  
 |1|    |0	0	1| |1|  
 ```  
-4. ƽ��  
-�任����  
+4. 平移  
+变换矩阵：  
 ```  
 |x'|   |1	0	x1| |x|  
 |y'| = |0	1	y1| |y|  
 |1|    |0	0	 1| |1|  
 ```  
-�����  
+结果：  
 x' = 1\*x + 0\*y + x1\*1 = x + x1  
 y' = 0\*x + 1\*y + y1\*1 = y + y1  
-### Matrix���ϱ任ԭ��  
-> ������ʹ�õ����ֱ任������Ӧ��matrix�Ĳ����������ࣺǰ��(pre), ���(post), ����(set)  
+### Matrix复合变换原理  
+> 我们能使用的四种变换，所对应的matrix的操作都有三类：前乘(pre), 后乘(post), 设置(set)  
   
-��Ӧ�ļ��㣺  
+对应的计算：  
 ```  
-ǰ�ˣ�M' = M\*X  
-��ˣ�M' = X\*M  
+前乘：M' = M\*X  
+后乘：M' = X\*M  
 ```  
-���ϱ任����������  
-* ���еı任(ƽ�ƣ���ת�����У�����)������**��ǰ������ԭ��**Ϊ��׼����б任��  
-* ��ÿ�ν��б任������ϵ��أ�ԭ�㣬x�᷽��y�᷽��Ҳ��Ӧ�任�����Ի�Ӱ������任�����������ĺ�����ÿ�α任�Ļ�׼��ͷ����˱任��  
+复合变换基本定理：  
+* 所有的变换(平移，旋转，错切，缩放)都是以**当前的坐标原点**为基准点进行变换的  
+* 在每次进行变换后，坐标系相关（原点，x轴方向，y轴方向）也相应变换，所以会影响后续变换（就是上述的后续的每次变换的基准点就发生了变换）  
 
-**�ڽ��и��ӵĸ��ϱ任ʱ�������Ƚ��о�������㣬�ó��任����ļ��㹫ʽ���磺S\*M\*R\*T�����ٸ��ݾ�����㹫ʽ���ó�Ӧ��ʹ��ǰ��(pre)���Ǻ��(post)**  
-**��֮�����ݳ�����룬Ҫ�ó����ձ任���������еķ����ǣ�������Զ�Ǵ������£�һ��һ�е�ִ�еģ���ôΪʲôʹ��ǰ�˺�ʹ�ú�ˣ���ʱ�ᵼ�±任�����һ���أ����ȣ������ǲ����㽻���ɵģ���ξ�����������������Ӱ���ˣ�������ʹ��ǰ��(pre)ʱ����ǰ������ϵʹ�õ��Ǳ任���Matrix������ϵ����ʹ�ú��(post)ʱ����ǰ������ϵ������任���󣨱��磬��ת45�ȣ�ϵͳ��������ľ��󣩵�����ϵ���������ϵ����Ĭ�ϵ�����ϵ��Ҳ����ԭ������Ļ���Ϸ�������ϵ�����ÿ�α任������ϵ֮����ô�˴α任�Ľ��Ҳ�������**  
-## Matrix����  
-### ��ֵ����  
-> mapPoints, mapRadius, mapRect, mapVectors:���㾭���任֮��ĵ㣬ƽ���뾶�����Σ�����  
+**在进行复杂的复合变换时，可以先进行矩阵的推算，得出变换矩阵的计算公式（如：S\*M\*R\*T），再根据矩阵计算公式，得出应该使用前乘(pre)还是后乘(post)**  
+**反之，根据程序代码，要得出最终变换结果，须进行的分析是：程序永远是从上往下，一行一行的执行的，那么为什么使用前乘和使用后乘，有时会导致变换结果不一致呢，首先，矩阵是不满足交换律的，其次就是上面两条定理的影响了，当我们使用前乘(pre)时，当前的坐标系使用的是变换后的Matrix的坐标系，而使用后乘(post)时，当前的坐标系是这个变换矩阵（比如，旋转45度，系统构造出来的矩阵）的坐标系，这个坐标系就是默认的坐标系，也就是原点在屏幕左上方的坐标系，清楚每次变换的坐标系之后，那么此次变换的结果也就清楚了**  
+## Matrix方法  
+### 数值计算  
+> mapPoints, mapRadius, mapRect, mapVectors:计算经过变换之后的点，平均半径，矩形，向量  
   
-### ���ⷽ��  
+### 特殊方法  
 #### setPolyToPoly  
 > setPolyToPoly(float[] src, int srcIndex, float[] dst, int dstIndex, int pointCount)   
   
-���������ã�Set the matrix such that the specified src points would map to the specified dst points.�����ǲ�֪����ô˵ѽ��  
-���ǰ�src��pointCount������Ƶ�dst��pointCount�����Ӧ��λ�ã�pointCountȡֵ��0�� 1�� 2�� 3�� 4  
+方法的作用：Set the matrix such that the specified src points would map to the specified dst points.（真是不知道怎么说呀）  
+就是把src中pointCount个点绘制到dst中pointCount个点对应的位置，pointCount取值是0， 1， 2， 3， 4  
 #### setRectToRect  
 > setRectToRect(RectF src, RectF dst, ScaleToFit stf)  
   
-���������ã���Դ��������ݻ��Ƶ�Ŀ���������  
-* ��stf=ScaleToFit.START/CENTER/ENDʱ�����Դ����Ĵ�С��Ŀ�����Ĵ�С����ȣ����Ƶ�ʱ����Դ�����е����ݽ������ţ����ŵĹ����ǣ�**��Դ��������ݵ�������Ŀ��������С�����Ϊֹ**  
-* ��stf=ScaleToFit.FILLʱ�����Դ����Ĵ�С��Ŀ�����Ĵ�С����ȣ����Ƶ�ʱ����Դ�����е����ݽ������ţ��û�����������Ŀ�����  
+方法的作用：将源矩阵的内容绘制到目标矩阵区域  
+* 当stf=ScaleToFit.START/CENTER/END时，如果源矩阵的大小不目标矩阵的大小不相等，绘制的时候会对源矩阵中的内容进行缩放，缩放的规则是：**让源矩阵的内容的最大边与目标矩阵的最小边相等为止**  
+* 当stf=ScaleToFit.FILL时，如果源矩阵的大小不目标矩阵的大小不相等，绘制的时候会对源矩阵中的内容进行缩放，让绘制内容填满目标矩阵  
 ## Matrix Camera  
-> λ�ڰ�graphic�У���Ҫ�Ǹ�View���յ�����������ǽ�3D�����ı��Ϊ2D������  
+> 位于包graphic中，主要是给View拍照的相机，作用是将3D内容拍扁成为2D的内容  
   
-### Camera���÷���  
-* save,restore:���棬�ع�  
-* getMatrix,applyToCanvas:��ȡMatrix��Ӧ�õ�����  
-* translate:λ��  
-* rotateX,rotateY,rotateZ:Χ�Ʋ�ͬ��������ת  
-* setLocation,getLocationX,getLocationY,getLocationZ:�������ȡ���λ��  
-### Camera����ϵ  
-> Cameraʹ�õ�����ϵ����������ϵ�������ֱ�ָ��x�����������ָ����ָ��y�������򣬴�Ĵָָ��z��������Ĭ��ԭ��λ�ã���Ļ���Ͻ�  
+### Camera常用方法  
+* save,restore:保存，回滚  
+* getMatrix,applyToCanvas:获取Matrix，应用到画布  
+* translate:位移  
+* rotateX,rotateY,rotateZ:围绕不同坐标轴旋转  
+* setLocation,getLocationX,getLocationY,getLocationZ:设置与获取相机位置  
+### Camera坐标系  
+> Camera使用的坐标系是左手坐标系：左手手臂指向x轴的正方向，四指弯曲指向y轴正方向，大拇指指向z轴正方向，默认原点位置：屏幕左上角  
   
-Ҫ����ά�ռ��������ʾ�ڶ�άƽ������Ҫʹ����άͶӰ����άͶӰ�ķ��ࣺ  
-* ����ͶӰ��������ͼ������ͼ������ͼ������ͼ��  
-* ͸��ͶӰ����ѭ����ԶС�Ĺ�ϵ�������Cameraʹ�õľ���͸��ͶӰ  
-Android����۲�View�������Ĭ��λ������Ļ�����Ͻǣ��Ҿ�����Ļ��һ�ξ���  
-### Camera��ƽ�Ƽ���ת�任  
-> ��ס�����ƽ�ƺ���ת�任��Ȼ��Camera�ϵķ������������������Ӧ�õ��˻������ݵĻ����ϣ�����ʹ���˱任֮��ʵ����Camera��λ���ǲ��ᷢ���仯�ģ���Ȼ��(0, 0, -8)�����ϣ�����ʵ���Ϸ����任��һ���ǻ��Ƶ�View  
+要将三维空间的内容显示在二维平面上需要使用三维投影，三维投影的分类：  
+* 正交投影：如正视图，侧视图，仰视图，俯视图等  
+* 透视投影：遵循近大远小的关系，这里的Camera使用的就是透视投影  
+Android上面观察View的摄像机默认位置在屏幕的左上角，且距离屏幕有一段距离  
+### Camera的平移及旋转变换（只有Camera变换的情况下，只有Canvas变换同理，关键是坐标系的变化）  
+> 记住这里的平移和旋转变换虽然是Camera上的方法，但是我们最后都是应用到了绘制内容的画布上，所以使用了变换之后，实际上Camera的位置是不会发生变化的，依然在(0, 0, -8)坐标上，所以实际上发生变换的一定是绘制的View  
   
-���Դ������£�  
+测试代码如下：  
 ```  
 	camera.translate(0, 0, increaseZ ? 1 : -1);
         Matrix matrix = new Matrix();
@@ -135,20 +135,26 @@ Android����۲�View�������Ĭ��λ������Ļ�����Ͻǣ��Ҿ�����Ļ��һ�ξ���
         canvas.drawBitmap(icon, matrix, paint);
         postInvalidate();  
 ```  
-��  
+或：  
 ```  
 	camera.translate(0, 0, increaseZ ? 1 : -1);
         camera.applyToCanvas(canvas);
         canvas.drawBitmap(icon, 0, 0, paint);
         postInvalidate();  
 ```  
-ͨ���������룬���������¼�����ۣ�  
-* Camera�ϵı任������Ӧ�õ��˻��Ƶ�View��  
-* Camera��λ�ò��ᷢ���仯����Ȼ����(0, 0, -8)�����ϣ������"-8"�ĵ�λ��Ӣ�磡����android�ײ��ͼ������Skia�У�Camera�ĵ�λ��Ӣ�磬����Skia��Ӣ������ص�ת����ϵ��:"1Ӣ��=72����"�����ԣ����-8��Ӧ����-576���أ�Ҳ����-8\*72��  
-* �����Ƶ����ݵ�z������С��Camera��z����ֵ��Ҳ���ǲ���Camera��z�������򣩣���ô���ǾͿ��������View��  
-* ��������˵�ģ�����Camera��λ���ǲ���ģ����ԣ������ڽ���Camera����һЩView�ı任ʱ����Ҫ����Camera��λ���Լ������ڵ�����ϵԭ��  
-* ʹ����Camera��rotate��ط���������任Ӧ����View��ʱ������ԭ�㻹����Ļ�����Ͻǣ����Ƕ�Ӧ��x,y,z��ķ����������Ļ�ͷ����˱仯��  
+通过上述代码，可以有以下几点结论：  
+* Camera上的变换最终是应用到了绘制的View上  
+* Camera的位置不会发生变化，依然是在(0, 0, -8)坐标上（但这个"-8"的单位是英寸！！在android底层的图像引擎Skia中，Camera的单位是英寸，且在Skia中英寸和像素的转换关系是:"1英寸=72像素"，所以，这个-8对应的是-576像素，也就是-8\*72）  
+* 当绘制的内容的z轴坐标小于Camera的z坐标值（也就是不在Camera的z轴正方向），那么我们就看不见这个View了  
+* 由上述所说的，由于Camera的位置是不变的，所以，我们在借助Camera进行一些View的变换时，需要考虑Camera的位置以及其所在的坐标系原点  
+* 使用了Camera的rotate相关方法，这个变换应用在View上时，坐标原点还在屏幕的左上角，但是对应的x,y,z轴的方向相对于屏幕就发生了变化了  
   
-**��Camera���任���������ǿ����������Ǿ����任֮��ͶӰ����Ļ�����ݣ����Camera��translateX/translateYûʲôӰ�죬��ʱ����translateZ���б�󡢱�С�������ε�Ч����**  
-**��ӦCamera����ת����ΪCamera��ת����ָ����ת���ģ���������ת���ľ����䵱ǰ������ԭ�㣬�������Ҫ�������ݵ���ת���ģ�����Ҫ�����ݵ���ת������ƽ�Ƶ�camera����ת���Ĵ�**  
-**�ٴ�˵����ÿ�α任��������ڵ�ǰ������ԭ�㣬ÿ�α任��Ӱ������ı任����Ϊ�ôα任Ҳ����������ԭ���λ�÷�����Ӧ�ı任��**  
+**对Camera做变换，最终我们看见的内容是经过变换之后投影到屏幕的内容（这对Camera的translateX/translateY没什么影响，当时对于translateZ就有变大、变小甚至变形的效果）**  
+**对应Camera的旋转，因为Camera旋转不能指定旋转中心，所以其旋转中心就是其当前的坐标原点，因此我们要控制内容的旋转中心，就需要将内容的旋转中心先平移到camera的旋转中心处**  
+**再次说明：每次变换都是相对于当前的坐标原点，每次变换会影响后续的变换（因为该次变换也导致了坐标原点的位置发生相应的变换）**  
+
+### canvas变换与matrix变换搭配使用情况：（matrix通过camera变换构造）  
+> 主要是分析清楚移动、旋转与投影的先后顺序（这个顺序和代码的先后无关，这里说的无关不是说代码无序执行，代码依然是从上往下依次执行，但最终代码构造出的变换矩阵是可能不同的，因此会影响结果）  
+
+* canvas.concat(matrix) 之前的canvas变换是在投影之后  
+* canvas.concat(matrix) 之后的canvas变换是matrix变换之前
