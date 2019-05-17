@@ -1,0 +1,78 @@
+Handler:
+
+Q：谈谈消息机制Handler？作用？有哪些要素？流程是怎样的？
+A：Handler用于线程间通讯，包含的要素有Looper，Message，MessageQueue，Thread，ThreadLocal，ThreadLocalMap
+   流程：一个Handler对应一个MessageQueue和一个Looper，具体表现为Handler持有MessageQueue和Looper的引用，一个MessageQueue对应一个Looper，
+   具体表现为Looper持有MessageQueue的引用，Handler将消息发送至其对应的MessageQueue中，Looper通过死循环的方式在其对应的MessageQueue中
+   获取Message并执行Message中的run方法
+   
+Q：Looper，Thread，ThreadLocal，ThreadLocalMap的关系
+A：一个Looper对应一个Thread，具体表现为Looper持有Thread的引用，并且Looper中有一个ThreadLocal对象，Thread持有一个ThreadLocalMap对象，
+   ThreadLocalMap是一个以ThreadLocal为key， Looper为value的hashMap，在调用Looper.prepare()的时候，该Looper会被存到其对应Thread的
+   ThreadLocalMap中
+   
+Q：为什么系统不建议在子线程访问UI？
+A：因为UI是在主线程（Main）中元素，对其的操作应该在主线程中，在子线程中访问UI，需要进行线程切换
+   （子线程中访问UI不是线程安全的，多线程并发访问UI会造成其处于不可预料的状态）
+   
+Q：可以加锁实现多线程访问UI吗？
+A：不行，加锁实现多线程访问UI会造成UI访问的逻辑变得复杂，而且加锁势必会造成访问效率变低
+
+Q：一个Thread可以有几个Looper？几个Handler？
+A：一个Thread中只能有一个Looper，因为我们在向Thread中的ThreadLocalMap中添加Looper的时候会先去判断其中是否已经有了该Looper，
+   没有才添加，而Looper中的ThreadLocal是一个static final变量，所有Looper对象公用这个不变值，所以只要向Thread的ThreadLocalMap
+   中添加过Looper，下次在某个线程中再次创建新的Looper，我们是能够通过Looper公用的ThreadLocal找到线程中的Looper的
+   一个Thread中可以用多个Handler
+   
+Q：如何将一个Thread线程变成Looper线程？Looper线程有哪些特点？
+A：将Looper与Thread绑定，具体表现是将Looper存储到Thread的ThreadLocalMap中
+   Looper线程可以利用Handler进行线程间通信
+   
+Q：可以在子线程直接new一个Handler吗？那该怎么做？
+A：Looper looper = Looper.prepare();
+   Handler handler = new Handler(){...}
+   looper.loop();
+   
+Q：Message可以如何创建？哪种效果更好，为什么？
+A：可以使用构造方法与其静态方法obtain，使用obtain方法更好，因为可能有可以循环使用的Message，而不需要再次去获取内存，创建新的Message实例
+   （每个Message可能都有一个可循环使用Message sPool以及下一个消息Message next）
+   
+Q：这里的ThreadLocal有什么作用？
+A：作为Thread中ThreadLocalMap的key值，所有Looper公用一个ThreadLocal，所有每条Thread只能有一个Looper
+
+Q：HandlerThread有什么特点？
+A：在创建HandlerThread的时候，就创建了和这个Thread绑定的Looper和Handler（就是一个Looper线程）
+
+Q：使用Hanlder的postDealy()后消息队列会发生什么变化？
+A：Handler的postDealy将消息放入到MessageQueue中，MessageQueue不是一个队列，而是以链表的方式存的Message（Message自带next）
+   程序会计算该消息应该延时多少毫秒（从当前时间开始，对应程序中的when变量），通过这个when将该Message插入到链表中，具体表现为：
+   链表中没有元素，就直接插入表头，若链表中有元素，将该消息插入到发生时间比该消息发生时间长的消息之前的位置
+   
+Q：主线程中Looper的轮询死循环为何没有阻塞主线程？
+A：因为Android是基于事件处理的，Looper.loop在不停的接受事件，处理事件，所有的点击、触摸最终都需要在loop中处理，只是在处理事件的时候会阻塞Looper.loop
+
+
+Thread:
+
+Q：Android中还了解哪些方便线程切换的类？
+A：Handler，HandlerThread，AsyncTask，IntentService
+
+Q：AsyncTask相比Handler有什么优点？不足呢？（这里应该问AsyncTask和Thread的区别和不足吧？为什么AsyncTask只适合用于耗时短的异步操作，耗时长的异步操作最好用线程池呢？）
+A：AsyncTask和Handler根本就没有什么可比性，AsyncTask主要用于简单的耗时短的异步任务，而Handler用于线程的切换，在AsyncTask中持有一个Handler的引用，通过此Handler将消息
+   发送给Handler所在线程（一般为主线程），以执行相关的onProgressUpdate及onPostExecute方法
+   AsyncTask与Thread的区别在于AsyncTask内部实际上使用的是线程池来执行异步任务，而使用线程池一定程度上可以减少新建线程带来的开销，不同于Thread，每执行一个任务就需要新建一个
+   Thread，同时我们也不用太关心结果出来的线程切换问题，不足就是AsyncTask只适合用于处理耗时短的异步任务
+   
+Q：为什么AsyncTask只适合用于耗时短的异步操作
+A：因为AsyncTask没有与Activity的生命周期同步，因此当Activity被销毁，其启动的AsyncTask也不会被销毁，直到其完成，而若AsyncTask的onPostExecute中还持有Activity的引用，
+   系统就无法释放未显示的Activity的资源占用，导致内存泄漏
+   
+Q：使用AsyncTask需要注意什么？
+A：应使用AsyncTask执行一些耗时短的异步任务，而且当AsyncTask持有Activity的引用的时候，需要注意内存泄漏的问题 （https://www.cnblogs.com/wangzehuaw/p/5328254.html）
+
+Q：AsyncTask中使用的线程池大小？
+A：AsyncTask使用的是ThreadPoolExecutor线程池，其中核心线程最小2条，最大4条，这和硬件的cpu有关，然后最大的线程数是核心线程数的2倍加1，使用了一个size为128的队列存储任务
+
+Q：ThreadPoolExecutor的工作策略？
+A：ThreadPoolExecutor中包括核心线程，存储任务的队列和最大线程数，当任务数量小于核心线程数时，被提交的任务会立即被核心线程执行，当超过核心线程数时，会将提交的任务存储在任务队列中
+   若任务队列中已经放满，且核心线程数小于最大线程数，系统会创建新的线程执行提交的任务，若任务队列已满，并且当前active线程等于最大线程，会拒绝任务的提交
