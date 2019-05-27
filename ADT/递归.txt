@@ -1,0 +1,65 @@
+递归
+	Base
+	f(n) 与 f(n-1)的关系
+
+阶乘
+	def f(n):
+		if n == 0:
+			return 1
+		return n*f(n-1)
+
+斐波拉契数列
+	f(n) = f(n - 1) + f(n - 2)
+	不能用递归，递归的时间复杂度是2^n, 应使用动态规划
+
+
+打印尺子
+	1
+	121
+	1213121
+	121312141213121
+
+	def f(n)
+		if n == 1:
+			return 1
+		t = f(n - 1)
+		return t + n + t	
+
+对于两个数a，b，且b>a, a可进行*2，+1的操作，求使a操作得到b的最短操作
+	b < 2a; a+1
+	b > 2a; a*2
+
+	Base : b = 2a, b = a + 1
+
+	def f(a, b):
+		if (a == b):
+			return str(a)
+		if (b %2 == 1):
+			return "(" + f(a, b-1) + "+1)"
+		if (b < a*2):
+			return "(" + f(a, b-1) + "+1)"
+		return f(a, b/2) + "*2";
+
+汉诺塔
+	Base: f(1)    L->R
+		f(n)
+			f(n - 1):  L -> M
+			f(1): L -> R
+			f(n - 1): M -> R
+
+子集Subset
+	1、在子集中添加一个元素后得到的集合与之前所有的子集一起添加下一元素
+	2、回溯(backtracking)
+		nums = ['a', 'b', 'c']
+		def subsets(nums):
+			lst = []
+			result = []
+			subsets_recursive(result, lst, nums, 0)
+			return result
+
+		def subsets_recursive(result, lst, nums, pos):
+			result.append(lst[:])
+			for i in range(pos, len(nums)):
+				lst.append(nums[i])
+				subsets_recursive(result, lst, nums, i + 1)
+				lst.pop()
