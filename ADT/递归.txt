@@ -63,3 +63,19 @@
 				lst.append(nums[i])
 				subsets_recursive(result, lst, nums, i + 1)
 				lst.pop()
+	去重复：排序，比较第n个和n+1个（剪枝）
+
+排列组合Permutation
+	找出组合的全排列
+
+Letter Case Permutation
+	找出给定语句中指定字符大写的全排列
+
+Conbination Sum
+	给定没有重复的数字，给定一个target，找出数组中任意个数字相加的和为target
+	解：就是找子集，子集的和为target
+
+打印出n对括号的全排列（合法排列）
+
+N-Queens
+	每一行都有Queen，但对于任意横行与竖行组成的十字都只有一个Queen
