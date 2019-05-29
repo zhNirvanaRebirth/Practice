@@ -1,0 +1,5 @@
+1、find a missing number
+	add the first array numbers then reduce the second array numbers
+	use XOR (^)
+	sort
+	
