@@ -1,0 +1,67 @@
+查找/搜索
+	顺序查找
+		数据无序
+	二分搜索
+		数据有序 O(lgn)
+
+排序
+	冒泡排序
+		两两依次排序，满足条件就交换，一轮下来，可以确定最大（最小）的元素
+
+		O(n2)的比较和交换
+		在数组接近排序时，可优化至O(n)
+
+	选择排序
+		每轮记录最大值的index，一轮下来，将最大值和第一个（最后一个）元素交换
+
+		O(n2)比较
+		O(n)交换
+
+	插入排序
+		让每个元素和之前的元素进行比较，满足条件就交换
+
+		时间复杂度O(n2)
+		适合数组长度小时使用
+		数组接近排序时，插入排序的效率比较高
+
+	希尔排序
+		当数组大时，可进行拆分，然后对拆分的小数组使用插入排序
+		每次gap加倍以增大子数组
+
+	计数排序
+		使用情况
+			数字范围比较集中
+			中很多重复数字
+
+		时间复杂度O(n)
+		需要额外空间
+
+	归并排序
+		分治法
+		将数组对半拆分，直到不能查分为止，然后进行合并（进行插入排序）
+
+		sort(nums)
+			if len(nums) <= 1:
+				return nums
+			m = len(nums)
+			a = sort(nums[:m])
+			b = sort(nums[m:])
+			return merge(a, b)
+
+		时间复杂度O(nlgn)
+
+	快速排序
+		分治法
+		每轮选择一个pivot，双指针比较交换，一轮下来pivot就在其该在的位置，然后以pivot分割数组为两个小数组
+		循环/递归调用上面操作
+
+		quick_sort(nums)
+			if len(nums) <=1:
+				return nums
+			pivot = nums[0]
+			left_nums = quick_sort(x for x in nums[1:] if x < pivot)
+			right_nums = quick_sort(x for x in nums[1:] if x >= pivot)
+			return left_nums + [pivot] + right_nums
+
+		时间复杂度O(nlgn)
+		pivot选择可能影响时间复杂度
