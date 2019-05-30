@@ -31,4 +31,210 @@ ANR具体产生的类型及对应的最大超时时间
 		
 		
 Activity启动过程
-	
+	ActivityManagerService
+		系统服务
+		运行在单独的进程
+		扮演Binder进程间通信机制中的Server角色
+		启动并管理Activity和Service
+		启动过程
+			ActivityManagerService.main (创建一个ActivityManagetService实例)
+			ActivityManagerService.setSystemProcess (把Binder实例添加到Binder进程间通信机制的守护进程ServiceManager中去)
+		
+	Launcher/Activity启动Activity过程（ActivityManagerService和ActivityStack位于同一进程， ApplicationThread和ActivityThread位于另一个进程）
+		通过Binder进程间通信进入到ActivityManagerService进程中，并调用ActivityManagerService.startActivity接口
+		ActivityManagerService调用ActivityStack.startActivityMayWait来准备要启动的Activity的相关信息
+		ActivityStack通知ApplicationThread要进行Activity启动的调度了，这里的ApplicationThread代表调用ActivityManagerService.startActivity接口的进程，即Launcher或Activity所在进程
+		ApplicationThread不执行真正的启动操作，它通过调用ActivityManagerService.activityPaused接口进入ActivityManagerService进程中，看是否需要创建新的进程来启动Activity
+		若是Launcher启动Activity，则调用ActivityManagerService.startProcessLocked来创建一个新的进程
+		ActivityManagerService调用ApplicationThread.scheduleLaunchActivity接口，通知响应的进程执行启动Activity的操作
+		ApplicationThread把这个启动Activity的操作发送给ActivityThread，ActivityThread通过ClassLoader来载入相应的Activity类，然后把它启动起来
+		
+		
+	Launcher启动MainActivity过程
+		Launcher.startActivitySafely
+		Activity.startActivity -> Activity.startActivityForResult
+		ActivityThread.getApplicationThread  (ActivityThread代表应用程序主线程，ApplicationThread是一个Binder对象，ActivityManagerService使用它来和ActivityThread进行进程间通信)
+		Instrumentation.execStartActivity
+		ActivityManagerNative.getDefault (返回ActivityManagerService的远程接口，即ActivityManagerProxy)
+		ActivityManagerProxy.startActivity
+		ActivityManagerService.startActivity (上一步通过Binder驱动进入此步)
+		ActivityStack.startActivityMayWait (解析获得MainActivity信息)
+		ActivityStack.startActivityLocked
+		ActivityStack.startActivityUncheckedLocked (获取Intent标志位/启动模式)
+		Activity.resumeTopActivityLocked
+		ActivityStack.startPausingLocked
+		ApplicationThradProxy.schedulePauseActivity
+		ApplicationThrad.schedulePauseActivity
+		ActivityThread.queueOrSendMessage
+		H.handleMessage
+		ActivityThread.handlePauseActivity
+		ActivityManagerProxy.activityPaused
+		ActivityManagerService.activityPaused
+		ActivityStack.activityPaused
+		ActivityStack.completePauseLocked
+		ActivityStack.resumeTopActivityLocked
+		ActivityStack.startSpecificActivityLoacked
+		ActivityManagerService.startProcessLocked (创建进程)
+		ActivityThread.main  (进入新创建的进程)
+		ActivityManagerProxy.attachApplication
+		ActivityManagerService.attachApplication
+		ActivityManagerService.attachApplicationLocked
+		ActivityStack.realStartActivityLocked
+		ApplicationThreadProxy.scheduleLaunchActivity
+		ApplicationThread.scheduleLaunchActivity
+		ActivityThread.queueOrSendMessage
+		H.handleMessage
+		ActivityThread.handleLaunchActivity
+		ActivityThread.performLaunchActivity
+		ClassLoader加载
+		MainActivity.onCreate
+		
+	MainActivity启动SecondActivity过程
+		Activity.startActivity -> Activity.startActivityForResult
+		Instrumentation.execStartActivity
+		ActivityManagerProxy.startActivity
+		ActivityManagerService.startActivity
+		ActivityStack.startActivityMayWait (解析获得MainActivity信息)
+		ActivityStack.startActivityLocked
+		ActivityStack.startActivityUncheckedLocked (获取Intent标志位/启动模式)
+		Activity.resumeTopActivityLocked
+		ActivityStack.startPausingLocked
+		ApplicationThradProxy.schedulePauseActivity
+		ApplicationThrad.schedulePauseActivity
+		ActivityThread.queueOrSendMessage
+		H.handleMessage
+		ActivityThread.handlePauseActivity
+		ActivityManagerProxy.activityPaused
+		ActivityManagerService.activityPaused
+		ActivityStack.activityPaused
+		ActivityStack.completePauseLocked
+		ActivityStack.resumeTopActivityLocked
+		ActivityStack.startSpecificActivityLoacked
+		ActivityStack.realStartActivityLocked
+		ApplicationThreadProxy.scheduleLaunchActivity
+		ApplicationThread.scheduleLaunchActivity
+		ActivityThread.queueOrSendMessage
+		H.handleMessage
+		ActivityThread.handleLaunchActivity
+		ActivityThread.performLaunchActivity
+		ClassLoader加载
+		SecondActivity.onCreate
+		
+	Service启动过程
+		Activity.startService
+		ContextImpl.startService
+		ActivityManagerProxy.startService
+		ActivityManagerService.startService
+		ActivityManagerService.startServiceLocked (解析Service的intent-filter标签)
+		ActivityManagerService.bringUpServiceLocked
+		ActivityManagerService.startProcessLocked  (若Service配置了在新进程中启动)
+		Process.start
+			ActivityManagerService是通过Process.start函数来创建一个新的进程的，而Process.start函数会首先通过Socket连接到Zygote进程中，最终由Zygote进程来完成创建新的应用程序进程，而Process类是通过openZygoteSocketIfNeeded函数来连接到Zygote进程中的Socket的
+		ActivityThread.main
+		ActivityThread.attach
+		ActivityManagerProxy.attachApplication
+		ActivityManagerService.attachApplication
+		ActivityManagerService.attachApplicationLocked
+		ActivityManagerService.realStartServiceLocked
+		ApplicationThradProxy.scheduleCreateService
+		ApplicationThread.scheduleCreateService
+		ActivityThread.queueOrSendMessage
+		H.handleMessage
+		ActivityThread.handleCreateService
+		ClassLoader.loadClass
+		Service.onCreate
+		
+	进程启动过程
+		ActivityThread.main
+			应用程序进程入口函数
+			进程创建完成之后，应用程序框架层在此进程中将ActivityThread类加载进来，然后执行其main函数，这个main函数就是今年初执行消息循环的地方
+			
+		ActivityManagerService.startProcessLocked
+		Process.start
+		ProcessState::supportsProcesses (判断是否打开了/dev/binder设备文件)
+		Process.startViaZygote
+		Process.zygoteSendAndGetPid
+		ZygoteInit.runSelectLoopMode
+		ZygoteConnection.runOnce
+		Zygote.forkAndSpecialize
+		ZygoteConnection.handleChildProc
+		RuntimeInit.zygoteInit
+			RuntimeInit.zygoteInitNative (执行binder驱动程序的初始化工作)
+			AppRuntime.onZygoteInit
+			ProcessState.startThreadPool (启动线程池，用于和Binder驱动程序进行交互)
+			ProcessState.spawnPooledThread (创建PoolThread线程类)
+			PoolThread.threadLoop
+			IPCThreadState.joinThreadPool (告诉Binder驱动，这条线程要进入循环了)
+			IPCThreadState::talkWithDricer (与Binder进行交互，以获得Client的进程间调用)
+			executeCommand(cmd) （获得Client进程间调用后，处理相关请求）
+		RuntimeInit.invokeStaticMain
+		ClassLoader.loadClass (加载ActivityThread到进程中， 然后执行其main函数)
+		ActivityThread.main
+		Looper.loop (进入消息循环)
+		
+	应用程序安装过程
+			Android系统在启动过程中，会启动一个应用程序管理服务PackageManagerService,这个服务负责扫描系统中的特定目录，找到里面的应用程序文件（.apk），对这些文件进行解析，得到应用程序的相关信息
+			应用程序管理服务PackageManagerService安装应用程序的过程，其实就是解析应用程序配置文件AndroidManifest.xml的过程，从里面得到应用程序的相关信息（Activity, Service, BroadcastReceiver, ContentProvider）,有了这些信息，通过ActivityManagerService服务，就可以正常使用应用程序了
+			
+			PackageManagerService
+				系统服务
+				在系统启动时由SystemServer启动
+		
+			SystemServer.main （进行一些系统初始化工作）
+			SystemServer.init1
+			libsystem_server.system_init (初始化SurfaceFlinger, SensorService, AudioFlinger, MediaPlaayerService, CameraService, AudioPolicyService)
+			AndroidRuntime.callStatic
+			SystemServer.init2 (创建ServerThread线程，在这个线程中启动PackageManagerService服务)
+			ServerThread.run (这个线程中会启动PackageManagerService, ActivityManagerService等服务)
+			PackageManagerService.main (创建PackageManagerService实例，并把这个服务添加到ServiceManager中, 构造实例时，开始执行安装程序过程)
+			PackageManagerService.scanDirLI (扫描设备上一下目录的apk文件：/system/framework, /system/app, /vendor/app, /data/app, /data/app-private)
+			PackageManagerService.scanPackageLI (对找到的apk文件进行解析和安装)
+			PackageParser.parsePackage   (apk解析：Androidmanifest.xml的解析)
+			PackageManagerService.scanPackageLI (另一版本的scanPackageLI函数，用户保存解析出来的信息，此时，应用程序相关的package, activity, service, provider, receiver就被保存在PackageManagerService服务中了)
+			
+	Launcher启动过程
+		Launcher是由ActivityManagerService启动的
+		Launcher启动时会通过PackageManagerService把系统中已经安装好的应用程序以快捷图标的形势展示在桌面上
+		
+		SystemServer.main
+		SystemServer.init1
+		libsystem_server.system_init
+		AndroidRuntime.callStatic
+		SystemServer.init2
+		ServerThread.run
+		ActivityManagerService.main
+		PackageManagerService.main
+		ActivityManagerService.setSystemProcess (1、将ActivityManagerService实例添加到ServiceManager中托管，后期使用ServiceManager.getService就可以获得ActivityManagerService实例；2、将应用程序框架层下的android包加载进来；3、初始化ActivityThread类型的实例变量)
+		ActivityManagerService.systemReady
+		ActivityStack.resumeTopActivityLocked
+		ActivityManagerService.startHomeActivityLocked (向PackageManagerService中查询Category类型为HOME的activity)
+		ActivityStack.startActivityLocked
+		Launcher.onCreate
+		LauncherModel.startLoader
+		LoaderTask.run
+		LoaderTask.loadAndBindAllApps
+		LoaderTask.loadAllAppsByBatch
+		PackageManagerService.queryIntentActivities (查询Action类型为Intent.ACTION_MAIN, Category类型为Intent.CATEGORY_LAUNCHER的activity)
+		Launcher.bindAllApplications
+		AllApps2D.setApps (为每个应用程序创建一个ApplicationInfo实例，然后列表显示)
+		
+	系统进程Zygote启动过程
+		Android中的所有应用程序进程以及系统服务进程SystemServer都是用Zygote进程fork出来的
+		Android是基于Linux内核的，Linux中的所有进程都是init进程的子进程
+		
+		app_process.main (创建一个AppRuntime变量并调用其start函数)
+		AnroidRuntime.start (启动Android系统运行时库：调用startVM启动虚拟机，调用startReg注册JNI方法，调用ZygoteInit.main)
+		ZygoteInit.main (1、调用registerZygoteSocket创建socket接口，用了和ActivityManagerService通信；2、调用startSystemServer启动SystemServer；3、调用runSelectLoopMode进入无限循环，在创建的socket接口上等待ActivityManagerService请求创建新的应用程序进程)
+		ZygoteInit.registerZygoteSocket
+		ZygoteInit.startSystemServer (创建一个新的进程来启动SystemServer组件)
+		ZygoteInit.handleSystemServerProcess
+		RuntimeInit.zygoteInit
+		RuntimeInit.zygoteInitNative (执行Binder进程间通信机制的初始化工作)
+		SystemServer.main (会调用SystemServer.init1, SystemServer.init2执行相关的初始化工作及启动PackageManagerService和ActivityManagerService等服务)
+		ZygoteInit.runSelectLoopMode (等待ActivityManagerService来链接这个Socket，然后调用ZygoteConnection.runOnce来创建新的应用程序)
+		
+		
+		
+		
+		
+			
