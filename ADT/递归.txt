@@ -10,7 +10,7 @@
 
 斐波拉契数列
 	f(n) = f(n - 1) + f(n - 2)
-	不能用递归，递归的时间复杂度是2^n, 应使用动态规划
+	不能用递归，递归的时间复杂度是2^n, 应使用动态规划或者转化为矩阵
 
 
 打印尺子
@@ -67,6 +67,12 @@
 
 排列组合Permutation
 	找出组合的全排列
+	
+	def perm(result, nums):
+		if (len(nums) == 0):
+			print(result)
+		for i in range(len(nums)):
+			perm(result+str(nums[i]), nums[0:i]+nums[i+1:])
 
 Letter Case Permutation
 	找出给定语句中指定字符大写的全排列
@@ -76,6 +82,12 @@ Conbination Sum
 	解：就是找子集，子集的和为target
 
 打印出n对括号的全排列（合法排列）
-
+	generate('', n, n)
+	
+	def generate(prefix, left, right, parens=[]):
+		if right == 0: parens.append(prefix)
+		if left > 0: generate(prefix + '(', left - 1, right)
+		if right > left: generate(prefix + ')', left, right - 1)
+		return parens
 N-Queens
 	每一行都有Queen，但对于任意横行与竖行组成的十字都只有一个Queen
