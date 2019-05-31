@@ -61,7 +61,7 @@ Activity启动过程
 		ActivityStack.startActivityMayWait (解析获得MainActivity信息)
 		ActivityStack.startActivityLocked
 		ActivityStack.startActivityUncheckedLocked (获取Intent标志位/启动模式)
-		Activity.resumeTopActivityLocked
+		ActivityStack.resumeTopActivityLocked
 		ActivityStack.startPausingLocked
 		ApplicationThradProxy.schedulePauseActivity
 		ApplicationThrad.schedulePauseActivity
@@ -73,7 +73,7 @@ Activity启动过程
 		ActivityStack.activityPaused
 		ActivityStack.completePauseLocked
 		ActivityStack.resumeTopActivityLocked
-		ActivityStack.startSpecificActivityLoacked
+		ActivityStack.startSpecificActivityLocked
 		ActivityManagerService.startProcessLocked (创建进程)
 		ActivityThread.main  (进入新创建的进程)
 		ActivityManagerProxy.attachApplication
@@ -165,7 +165,7 @@ Activity启动过程
 			ProcessState.spawnPooledThread (创建PoolThread线程类)
 			PoolThread.threadLoop
 			IPCThreadState.joinThreadPool (告诉Binder驱动，这条线程要进入循环了)
-			IPCThreadState::talkWithDricer (与Binder进行交互，以获得Client的进程间调用)
+			IPCThreadState::talkWithDriver (与Binder进行交互，以获得Client的进程间调用)
 			executeCommand(cmd) （获得Client进程间调用后，处理相关请求）
 		RuntimeInit.invokeStaticMain
 		ClassLoader.loadClass (加载ActivityThread到进程中， 然后执行其main函数)
@@ -209,6 +209,7 @@ Activity启动过程
 		ActivityStack.resumeTopActivityLocked
 		ActivityManagerService.startHomeActivityLocked (向PackageManagerService中查询Category类型为HOME的activity)
 		ActivityStack.startActivityLocked
+		...(与上面activity启动过程相同)
 		Launcher.onCreate
 		LauncherModel.startLoader
 		LoaderTask.run
@@ -234,7 +235,105 @@ Activity启动过程
 		ZygoteInit.runSelectLoopMode (等待ActivityManagerService来链接这个Socket，然后调用ZygoteConnection.runOnce来创建新的应用程序)
 		
 		
+Binder机制 
+	不同进程之间的通信（IPC）
+	提供远程过程调用（RPC）功能
+	Client，Server，ServiceManager运行在用户空间
+	Binder驱动程序运行在内核空间
+	Binder通信机制使用句柄来代表远程接口
+	
+	ServiceManager
+		是整个Binder机制的守护进程，用来管理开发者创建的各种Server，并向Client提供查询Server远程接口的功能
 		
+		service_manager.c main (1、打开Binder设备文件；2、告诉binder驱动程序自己是Binder上下文管理者，即守护进程；3、进入无限循环，充当Server角色，其句柄值为0，等待Client请求)
+		binder.c binder_open （打开Binder设备文件/dev/binder）	
+		binder.c binder_init
+		binder驱动程序 binder_open (创建一个struct binder_proc数据结构来保存打开设备文件/dev/binder的进程上下文信息， 并且将这些信息保存在打开文件结构struct file的私有数据成员遍历private_data中，这个进程上下文信息同时还会保存在一个全局哈希表binder_procs中，驱动程序内部使用)
+									binder_proc中就保存了那四个红黑树
+										strcut rb_root threads:用于保存binder_proc进程内用于处理用户请求的线程
+										struct rb_root nodes：用来保存binder_proc进程内的Binder实体
+										struct rb_root refs_by_desc：用来保存binder_proc进程内Binder的应用，即引用其他进程的Binder实体，以句柄值作为key
+										struct rb_root refs_by_node：用来保存binder_proc进程内Binder的应用，即引用其他进程的Binder实体，以实体节点作为key
+		binder驱动程序 binder_mmap (对打开的设备文件进行内存映射操作，映射时使用进程虚拟地址空间vm_area_struct和内核虚拟地址空间vm_struct来映射同一物理页面，这样能减少数据从Client进程空间到Server进程空间的拷贝次数)
+		binder.c binder_become_context_manager (通知Binder驱动程序自己是Binder机制的上下文管理者)
+		binder驱动程序 binder_ioctl
+									相关变量：
+										struct binder_thread
+											执行binder_become_context_manager的线程
+											其成员变量rb_node对应binder_proc中threads树中的一个节点
+										struct binder_node 
+											表示一个Binder实体
+		binder驱动程序 binder_new_node （创建Binder实体,在binder_proc中查询，有就不创建，没有就创建，并插入到binder_proc的nodes树中）
+		binder.c binder_loop 
+		binder驱动程序 binder_ioctl
 		
+	Server/Client获得ServerManager接口
+		Client想要获得Server远程接口，必须通过ServiceManager远程接口提供的getService接口来获得
+		Client获得ServiceManager远程接口不需要通过进程间通信来获得，因为ServiceManager远程接口是一个特殊的Binder引用，其引用句柄一定是0
 		
+		IServiceManager.cpp defaultServiceManager (获得ServiceManager远程接口BpServiceManager， 本质是一个句柄值为0的Binder引用)
+			获取了ServiceManager的远程接口之后
+				Server：
+					IServiceManager::addService
+					BpServiceManager::addService (调用基类BpRefBase的成员函数remote获得原先创建的BpBinder实例)
+					BpBinder::transact
+					IPCThreadState::transact (IPCThreadState中有一个ProcessState类型的成员变量mProcess，mProcess中有一个成员变量mDriverFD，他是设备文件.dev/binder的打开文件描述符，这样，IPCThreadState就可以和Binder驱动程序交互了)
+					
+				Client：
+					IServiceManager::getService
+					下同Server
+					
+	Binder中的Server启动过程
+		Server通过defaultServiceManager函数获得ServiceManager远程接口之后，就要把自己的Service添加到ServiceManager中去，然后把自己启动起来，等待Client的请求
+		
+		启动并获取全局唯一的ProcessState实例
+			open_driver (同ServiceManager，打开Binder设备文件/dev/binder， 并将打开设备文件描述符保存在成员变量mDriverFD中, 打开/dev/binder设备文件后，**Binder驱动程序就为响应的Server进程创建一个struct binder_proc结构体来维护其进程上下文信息**）
+			mmap （把设备文件/dev/binder映射到内存中）
+		defaultServiceManager().addService() （调用defaultServiceManager获取ServiceManager远程接口，将server添加到ServiceManager中）
+		BpServiceManager::addService  (这里会传输一个本地binder实体， 通过remote函数返回一个BpBinder指针)
+		BpBinder::transact 
+		IPCThreadState::transact (执行实际的操作，通过mProcess变量，ProcessState中的mDriverFD)
+		IPCThreadState::talkWithDriver
+			操作完成，ServiceManager就要引用这个Server了
+		ServiceManager被唤醒，进入while循环开始处理事务
+		binder_parse  (获取传输的binder实体)
+		do_add_service (将Server的binder实体写到一个struct svcinfo结构体中，包含名称和句柄值，然后插入到链接svclist的头部去，之后Client向ServiceManager查询服务接口时，只有给定服务名称，ServiceManager就能返回响应的句柄值了)
+		
+	Binder中的Client获取Server远程接口过程
+		Client通过defaultServiceManager函数获得ServiceManager远程接口之后，通过ServiceManager的getService接口获得Server远程接口
+		Client获取Server远程接口的本质就是从ServiceManager中获取该Server的句柄值
+		
+		defaultServiceManager()
+		BpServiceManager::getService()
+		BpBinder::transact
+		IPCThreadState::transact
+		IPCThreadState::talkWithDriver
+		ServiceManager被唤醒，进入while循环开始处理事务
+		binder_parse  (获取传输的binder实体)
+		svcmgr_handler
+		do_find_service
+		find_svc
+			client获取到了server远程接口，就可以使用server的服务了
 			
+	binder机制在应用程序框架层的Java接口
+		应用程序框架层中基于java语言的Binder接口是通过JNI来调用基于c/c++语言的Binder运行库来为java应用程序提供进程间通信服务的
+		在应用程序中
+			Server：
+				以Service形式实现
+				通过IServiceManager.addService接口将这个Service添加到ServiceManager中
+			Client：
+				通过IServiceManager.getService接口来获取Service接口，以使用Service提供的功能
+				
+		获取ServiceManager的java远程接口ServiceManagerProxy
+			ServiceManagerProxy实现了IServiceManager， IServiceManager提供了getServicehe和addService方法，构造ServiceManagerProxy需要一个BinderProxy对象，BinderProxy实现了IBinder接口，获取的BinderProxy持有句柄值为0的BpBinder
+			
+		Service接口定义
+			编写aidl文件，编译之后，获得IXXXService.Stub类和IXXXService.Stub.Proxy类， IXXXService.Stub继承Binder
+			
+		Service启动过程
+			SystemServer在系统启动时创建，创建时会开启一个线程创建Service，并将其加入到ServiceManager中
+		
+		Client获取Service的java远程接口过程
+			调用IXXXService.Stub.asInterface   获取IXXXService
+			
+		Client调用Service远程接口提供的服务
