@@ -1,0 +1,42 @@
+堆heap/priority queue
+
+	堆是一个complete tree
+	堆可以用一个数组来显示：对应关系是把堆中的节点一层一层地从左向右依次填入数组，可得：
+		任一堆中的节点的索引i,它的parent对应数组中的索引是(i-1)//2
+		其left: 2i + 1
+		其right: 2i + 2
+
+	maxheap:
+		任一节点的值大于其left的值，也大于其right的值
+
+		insert: O(lgn)
+
+		build: O(n)
+
+		lookup: O(1)
+
+		delete: O(lgn)
+
+		heapsort:O(nlgn)
+			build a heap: O(n)
+			delete max: O(lgn)
+
+	数组中第k大的元素
+		构造一个size为k的minheap
+
+	top k frequent words
+		dict + minheap
+
+	给定两个有序数组和数字k，从数组中各取一个数字相加，求和最小的k个pair
+		在数组1中取k个元素和数组2中的第一个元素相加，然后放入minheap
+		进行后续操作
+
+	给定k个sorted list， merge them to one sorted list
+		方法1：两个两个合并
+		方法2：heap， 添加k个list的head， 每取出一个元素，添加该元素对应list的下一个node进heap
+
+	find median from data stream
+		maxheap + minheap
+		maxheap.size = minheap.size or maxheap.size = minheap.size + 1
+		maxheap.max < minheap.min
+
