@@ -1,0 +1,218 @@
+树
+	数据成员
+		root/leaf
+			node
+				next
+				pre
+		depth
+		height
+		edge
+	操作
+		size()
+		isEmpty()
+		isRoot()
+		elements()
+		parent()
+		children()
+		
+		遍历
+			先序遍历：root -> left -> right
+				preOrder(v)
+					visit(v)
+					for each child w of v
+						preOrder(w)
+			后序遍历： left -> right -> root
+				postOrder(v)
+					for each child w of v
+						postOrder(w)
+					visit(v)
+			
+	二叉树
+		每个node最多有两个child
+		
+		full binarytree
+			每一个节点，要么有两个子节点，要么就没有子节点
+		complete binarytree
+			除了最后一排，其他的任何一排都是满的，对于最后一排，从左到右依次填满
+		full and complete
+			每一排都是完整的二叉树
+			
+		操作：
+			left()
+			right()
+			hasLeft()
+			hasRight()
+			
+			先序遍历
+			后序遍历
+			顺序遍历： left -> root -> right
+				inOrder(v)
+					if hasLeft(v)
+						inOrder(left(v))
+					visit(v)
+					if hasRight(v)
+						inOrder(right(v))
+	二分搜索树
+		对于每一个node，其左边所有child的值都小于node的值，其右边所有child的值都大于node的值
+		
+		class Node:
+			__slots__ = '_item', '_left', '_right'
+			
+			def __init__ (self, item, left=None, right=Node):
+				_item = item
+				_left = left
+				_right = right
+			
+			def get(self, key):
+				return self.__get(self._root, key)
+				
+			def __get(self, node, key):
+				if (node is None):
+					return None
+				if (key == node._item):
+					return node._item	
+				if (key < node._item):
+					return self.__get(node._left, key)
+				else:
+					return self.__get(node._right, key)
+					
+			def insert(self, key):
+				return self.__insert(self._root, key)
+			
+			def __insert(self, node, key):
+				if (node is None):
+					return Node(key)
+				if (key == node._item):
+					pass
+				else:
+					if (key < node._item):
+						node._left = self.__insert(self._left, key)   //需要做连线
+					else:
+						node._right = self.__insert(self._right, key)
+				return node
+				
+			def delete(self, key):
+				self._root = __delete(self._root, key);
+			
+			def __delete(self, node, key)://删除一个节点，就是要找个元素来替换该节点，使替换后还是一棵二叉树（就是在该节点右边找最小值或者在该元素左边找最大值）
+				if (node is None):
+					return None
+				if (key < node._item):
+					node.left = self.__delete(self._left, key)
+				elif (key > node._itme):
+					node._right = self.__delete(self._right, key)
+				else:
+					if (node._left is None):
+						node = node._right
+					elif (node._right is None):
+						node = node._left
+					else:
+						node.item = self.__get_max(node._left)
+						node._left = self.__delete(node._left, node._item)
+				return node
+				
+		AVL树
+			对任何一个节点来说，其左树的高度与右树的高度差不超过1， 当超过时，进行树旋转
+				树旋转
+					left right case -> left left case -> balance
+					right left case -> right right case -> balance
+		Red Black树
+		
+	树的大小
+		def size(self):
+			return __size(self._root)
+		def __size(self, node):
+			if (node is None):
+				return 0
+			else:
+				return 1 + __size(node._left) + __size(node._right)
+	树的深度
+		def max(self):
+			return __max(self._root)
+			
+		def __max(self, node):
+			if (node is None):
+				return 0
+			else:
+				return 1 + max(__max(node._left), __max(node._right))
+				
+	树是否是平衡树
+		对任何一个节点来说，其左树的高度与右树的高度差不超过1
+		可以找每个节点的最大深度和最小深度，比较他们的差（缺点：时间复杂度为n^2,有很多重复）
+		
+	Floor and Ceiling
+	
+	is binary search tree
+		isbst(l) & isbst(r) and l.max < v & r.min > v
+		
+		def isBst(self):
+			return self.__isBst(self._root, -sys.maxsize, sys.maxsize)
+		
+		def __isBst(self, node, minval, maxval):
+			if (node is None):
+				return True
+			if (node._item < minval or node._item > maxval):
+				return False
+			return self.__isBst(node._left, minval, node._item) and self.__isBst(node._right, node._item, maxval)
+	
+	mirror tree (镜像树，左树与右树交换)
+		if (node is not None):
+			self._mirror(node._left)
+			self._mirror(node._right)
+			
+			temp = node._left
+			node._left = node._right
+			node._right = temp
+			
+	same tree
+	
+	tree foldable(树能折叠, 左右对称)
+		def isFoldable(self):
+			if (self._root is None):
+				return true
+			return self._isFoldable(self._root._left, self._root._right)
+			
+		def _isFoldable(self, nodeA, nodeB):
+			if (nodeA is None and nodeB is None):
+				return True
+			if (nodeA is None or nodeB is None):
+				return False
+			return self._isFoldable(nodeA._left, nodeB._right) and self._isFoldable(nodeA._right, nodeB._left)
+			
+	
+	iterative get
+	
+	iterative add
+	
+	iterative inorder get
+		use stack
+		
+	iterative preOrder get
+		use stack
+		
+	iterative postOrder get
+		use stack and visit status
+	
+	binary search tree sort (O(nlgn))
+		tree add
+		inorder get
+	
+	level order traversal (一层一层的打印)
+		分层分层地将数据放入stack （使用两个stack）
+		
+	level order traversal bottom-up
+		上一题结果做个翻转
+		
+	zigzag level traversal （首位相接螺旋打印）
+	
+	construct binary tree from preOrder and inOrder traversal (通过树的先序遍历和顺序遍历还原树)
+	
+	convert sorted array to binary search tree(将排好序的数组转化成一个平衡的二分搜索树)
+		找到数组的中点，对左右两边进行递归操作
+		
+	convert sorted list to binary search tree
+	
+	path sum （给定一个二叉树和一个值sum，是否存在从根到叶子节点的路径中有一条路径，使得这条路径上的所有节点的值的和为sum）
+	
+	找到一个binary search tree的最近的共同祖先节点
+		

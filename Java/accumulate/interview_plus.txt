@@ -252,8 +252,8 @@ Binder机制
 									binder_proc中就保存了那四个红黑树
 										strcut rb_root threads:用于保存binder_proc进程内用于处理用户请求的线程
 										struct rb_root nodes：用来保存binder_proc进程内的Binder实体
-										struct rb_root refs_by_desc：用来保存binder_proc进程内Binder的应用，即引用其他进程的Binder实体，以句柄值作为key
-										struct rb_root refs_by_node：用来保存binder_proc进程内Binder的应用，即引用其他进程的Binder实体，以实体节点作为key
+										struct rb_root refs_by_desc：用来保存binder_proc进程内Binder的引用，即引用其他进程的Binder实体，以句柄值作为key
+										struct rb_root refs_by_node：用来保存binder_proc进程内Binder的引用，即引用其他进程的Binder实体，以实体节点作为key
 		binder驱动程序 binder_mmap (对打开的设备文件进行内存映射操作，映射时使用进程虚拟地址空间vm_area_struct和内核虚拟地址空间vm_struct来映射同一物理页面，这样能减少数据从Client进程空间到Server进程空间的拷贝次数)
 		binder.c binder_become_context_manager (通知Binder驱动程序自己是Binder机制的上下文管理者)
 		binder驱动程序 binder_ioctl
@@ -337,3 +337,13 @@ Binder机制
 			调用IXXXService.Stub.asInterface   获取IXXXService
 			
 		Client调用Service远程接口提供的服务
+		
+MultiDex
+	为什么要分包
+	怎么分包
+	分包之后怎么使用（怎么合）
+	
+	apk文件：AndroidManifest.xml， R， resource.arcs(资源索引)，assets, lib, classed.dex
+	
+	为什么分包：Android内部使用short int来存储方法数，当一个dex的方法超过65535就会抛异常
+	
