@@ -1,0 +1,123 @@
+图
+	深度优先搜索dfs
+	广度优先搜索bfs
+	最短路径dijkstra
+	
+	顶点vertex
+	边edge
+	顶点A与顶点B共享边，则他们相邻
+	
+	从顶点a到顶点b是否存在一条路径
+	从顶点a到顶点b的最短路径
+	
+	数据成员
+		顶点
+		边
+	操作
+		有多少个顶点
+		有多少边
+		添加一个顶点
+		添加一条边
+		对于一个顶点，有多少邻居
+		两个顶点是否直接相连
+		
+	矩阵图表示法
+		缺点：
+			内存浪费
+			增加顶点操作时间复杂度高
+			
+	邻接列表图表示法
+		array + list
+			所有顶点用数组来存储
+			每个顶点的邻居用列表/dictionary存储
+			
+	深度优先搜索dfs (O(v) + O(e))
+		跟踪下一步搜索的位置：使用stack
+		跟踪访问过的内容：使用hashset
+		跟踪从开始到目前访问过的路径：hashtable
+		DFS (to visit a vertex v)
+			mark v as visited
+			recursively visit all unmarked
+				vertices w adjacent to v
+		
+		recursive:
+		DFS(S, G, visited, parents):
+			if S == G return;
+			for each of S's neighbors, n, not in visited set
+				add n to visited set
+				add S as n's parent in parents map
+				DFS(n, G, visited, parents)
+			
+		iterative:
+		DFS(S, G):
+			Initialize: stack, visited HashSet and parent HashMap
+			push S onto the stack and add to visited
+			while stack is not empty:
+				pop node curr from top of stack
+				if curr == G return parent map
+				for each of curr's neighbors, n, not in visited set:
+					add n to visited set
+					add curr as n's parent in parent map
+					push n onto the stack
+					
+	广度优先搜索bfs (O(v) + O(e))
+		跟踪下一步搜索的位置：使用queue
+		跟踪访问过的内容：使用hashset
+		跟踪从开始到目前访问过的路径：hashtable
+		
+		BFS(S, G)
+			Initialize: queue, visited HashSet and parent HashMap
+			Enqueue S onto the queue and add to visited
+			while queue is not empty:
+				dequeue node curr from front of queue
+				if curr == G return parent map
+				for each of curr's neighbors, n, not in visited set:
+					add n to visited set
+					add curr as n's parent in parent map
+					enqueue n onto the queue
+					
+	连通图
+		从顶点v存在一条路径到顶点w，则顶点v与w是连通的，如果图中任意两点都是连通的，则该图是连通图
+			initialize all vertices v as unmarked
+			for each unmarked vertex v, run DFS to identify all vertices discovered as part of the same component
+			
+	最短路径
+		单源最短路径（一个起点）
+		Dijkstra's算法 (路径中有权重问题，BFS + heap)
+			BFS：放入queue中的neighbors是没有筛选的
+			Dijkstra：每次放入queue中的neighbors是筛选过的（针对没有访问过的neighbors，每次要放入queue之前选择一个局部最优解）
+				具体实现：维持一个minheap/maxheap，每次向queue放入neighbor之前，将所有neighbors放入heap中，取heap中的最大或最小值，加入queue，然后从queue中取出元素n，找到其所有neighbors，再将这些neighbors放入之前的heap，再取最大或最小值放入queue，循环调用
+				
+				Dijkstra(S, G):
+					initialize Priority queue(PQ), visited HashSet, parent HashMap, and distances to infinity
+					Enqueue {S, 0} onto the PQ
+					while PQ is not empty:
+						dequeue node curr from from front of queue
+						if (curr is not visited)
+							add curr to visited set
+							if curr == G return parent map
+							for each of curr's neighbors, n, not in visited set:
+								if path throught curr to n is shorter
+									update n's distance
+								enqueue(n, distance) into the PQ
+								
+				无法处理的问题：
+					路径中有负数
+					有圈，且圈中路径中有负数
+					
+				局限：
+					只考虑了信号源（出发点）
+					
+		A*算法
+			Dijkstra只考虑当前顶点到出发点的距离
+			A*考虑当前点到出发点和当前点到终点的距离（估算值），二者之和再放入heap中
+		
+		茶水间
+			在一栋楼中建立茶水间，使得建立茶水间的位置最优（最优是指对于楼中的员工到茶水间的距离和最短，并非在所有房间都存在员工，并且有的路径上有墙，不能通过）
+			方法一：对每个可建立茶水间的位置，遍历（DFS）获得其到每个员工位置的路径之和，比较得出位置
+			方法二：对每个员工遍历其到每个可建立茶水间的距离（维护一个二维数组），每次遍历下来都向这个二维数组对应位置加上当前距离，最终取值最小的位置
+
+		数字华容道
+			转化成空格的位置，然后找到空格从当前位置到最终位置的一条路径（DFS）
+					
+			
