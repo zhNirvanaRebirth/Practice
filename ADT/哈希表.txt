@@ -1,0 +1,101 @@
+哈希表 hashtable/hashmap/dictionary
+	<Key, Value> pair
+	数据成员
+	操作
+	哈希
+	冲突/碰撞
+	解决方案
+		open addressing
+		separate chain
+
+	双哈希
+	rehash
+
+	目的/设计理由
+		无碰撞情况下：
+			insert：O(1)
+			search：O(1)
+			delete：O(1)
+			update：O(1)
+
+
+
+	array
+	key --> __hash___ --> int --> int%size
+	key:
+		can not be mutable
+
+	hash:
+		int: 1 --> 1
+		float: 123.456 --> 123*P + 456    
+		string: abc --> (a*p + b)*p + c      (Horner's role)
+
+	碰撞：
+		1、不同的key可能得到相同的hashcode
+		2、hashcode与数组capacity求余可能得到相同的index
+
+	碰撞解决方案
+		open addressing
+			linear probing(线性搜索，碰撞时依次寻找下一个index)
+				CRUD时间复杂度有可能成为O(n)
+				primary clustering
+			quadratic probing（碰撞时依次寻找下n^2步的index）
+				seconding clustering
+
+		separate chain
+			每个元素中维护一个linkedlist
+			CRUD时间复杂度有可能成为O(n)
+
+	Double
+		随着数组中插入元素的怎么，对于hashmap的CRUD来说，其效率会降低
+
+		满载率：
+			python：2/3
+			java：0.75
+		元素位置变化(rehash)：hashcode%size=index
+
+	Object
+		自定义object，要使object可以作为hashmap中的key
+			重写hashfunction：可以生成hashcode
+			重写equals：当hashcode相同时可以判断object是不是真的相等（hashcode相同或者对应数组中的index相同并不以为着object相等）
+
+	Java
+		HashTable/HashMap/HashSet区别、实现
+		LinkedHashMap/TreeMap是什么，怎么实现的
+
+
+	使用场景：
+		计数
+		有没有出现过
+		有没有重复
+
+	letter count/Word count
+
+	first unique character in a string
+
+	intersection of two arrays
+		方法一：使用set
+		方法二：使用双指针
+
+	jewels and stones
+
+	contains duplicates
+		return len(nums) > len(set(nums))
+
+	contains duplicates with gap k
+
+	subdomain visit count
+
+	Keyboard row
+		use set and judge subset
+
+	word pattern
+
+
+	给定一个平面，平面上与很多点，找到一条穿过点最多的直线
+		将y = kx + b作为key
+
+
+	LRU/Cache
+		dict + 双向链表
+
